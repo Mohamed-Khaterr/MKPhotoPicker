@@ -15,7 +15,7 @@ public struct PhotoPickerStringURLMapper: MKPhotoPickerMapper {
         let identifier = UTType.movie.identifier
         guard result.itemProvider.hasItemConformingToTypeIdentifier(identifier) else { return }
         result.itemProvider.loadItem(forTypeIdentifier: identifier) { videoURL, error in
-            MKPhotoPicker<Any>.logger.error("\(error)")
+            MKPhotoPickerLogger.logger.error("\(error)")
             if let videoURL = videoURL as? URL {
                 completion(videoURL.absoluteString)
             }
