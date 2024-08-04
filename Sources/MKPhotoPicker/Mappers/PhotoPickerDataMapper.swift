@@ -17,7 +17,7 @@ public struct PhotoPickerDataMapper: MKPhotoPickerMapper {
     public func convert(_ result: PHPickerResult, completion: @escaping (Data?) -> Void) {
         guard result.itemProvider.hasItemConformingToTypeIdentifier(type.identifier) else { return }
         result.itemProvider.loadDataRepresentation(forTypeIdentifier: type.identifier) { data, error in
-            MKPhotoPicker<Any>.logger.error("\(error)")
+            MKPhotoPickerLogger.logger.error("\(error)")
             completion(data)
         }
     }
