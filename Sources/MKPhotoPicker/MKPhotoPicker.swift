@@ -7,11 +7,6 @@
 
 import SwiftUI
 import PhotosUI
-import os
-
-internal enum MKPhotoPickerLogger {
-    static var logger: Logger { Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotoPicker.MappResult") }
-}
 
 /// Show Photo Picker Screen
 public struct MKPhotoPicker<Resource, Mapper: MKPhotoPickerMapper> {
