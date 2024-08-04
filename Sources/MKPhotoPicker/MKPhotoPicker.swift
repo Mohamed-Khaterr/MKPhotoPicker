@@ -9,25 +9,34 @@ import SwiftUI
 import PhotosUI
 import os
 
-/// Show Photo Picker Screen
-public struct MKPhotoPicker<Resource>: UIViewControllerRepresentable {
+internal enum MKPhotoPickerLogger {
     static var logger: Logger { Logger(subsystem: Bundle.main.bundleIdentifier!, category: "PhotoPicker.MappResult") }
+}
+
+/// Show Photo Picker Screen
+public struct MKPhotoPicker<Resource, Mapper: MKPhotoPickerMapper> {
     
     /// Results from PhotoPicker
     @Binding var resources: [Resource]
-        
-    /// Configure what to present in PhotoPicker Screen
-    let configuration: PHPickerConfiguration
-    
+
     /// Mapper is to map the result from PhotoPicker to Resource Type
-    let mapper: any MKPhotoPickerMapper
-    
-    public init(_ resources: Binding<[Resource]>, expectedResult mapper: any MKPhotoPickerMapper, configuration: PHPickerConfiguration) {
+    let mapper: Mapper
+        
+    /// Configure what to present in the PhotoPicker Screen
+    let configuration: PHPickerConfiguration
+
+    /// - Parameter resources: Binding array of Resources
+    /// - Parameter mapper: Map the PHPicker Result to Resource
+    /// - Parameter configuration: The configuration of PHPickerViewController 
+    public init(_ resources: Binding<[Resource]>, mapper: Mapper, configuration: PHPickerConfiguration) {
         self._resources = resources
-        self.configuration = configuration
         self.mapper = mapper
+        self.configuration = configuration
     }
-    
+}
+
+// MARK:- UIViewControllerRepresentable
+extension MKPhotoPicker: UIViewControllerRepresentable {
     public func makeUIViewController(context: Context) -> PHPickerViewController {
         let picker = PHPickerViewController(configuration: configuration)
         picker.delegate = context.coordinator
@@ -37,7 +46,11 @@ public struct MKPhotoPicker<Resource>: UIViewControllerRepresentable {
     public func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
     
     public func makeCoordinator() -> Coordinator { Coordinator(self) }
-    
+}
+
+
+// MARK:- Coordinator
+extension MKPhotoPicker {
     public class Coordinator: PHPickerViewControllerDelegate {
         let parent: MKPhotoPicker
         
@@ -49,15 +62,15 @@ public struct MKPhotoPicker<Resource>: UIViewControllerRepresentable {
             picker.dismiss(animated: true)
             for result in results {
                 parent.mapper.convert(result) { [weak self] mappedResult in
-                    guard let strongSelf = self else { return }
+                    guard let self = self else { return }
                     
                     guard let mappedResult = mappedResult as? Resource else {
-                        MKPhotoPicker.logger.warning("[PhotoPicker]: Can't map on Resource type, change map value")
+                        MKPhotoPickerLogger.logger.error("[PhotoPicker]: Can't convert type of result to type of Resources")
                         return
                     }
                     
-                    DispatchQueue.main.async { [weak strongSelf] in
-                        strongSelf?.parent.resources.append(mappedResult)
+                    DispatchQueue.main.async {
+                        self?.parent.resources.append(mappedResult)
                     }
                 }
             }
