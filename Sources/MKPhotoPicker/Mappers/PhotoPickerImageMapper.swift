@@ -15,7 +15,7 @@ public struct PhotoPickerImageMapper: MKPhotoPickerMapper {
     public func convert(_ result: PHPickerResult, completion: @escaping (Image) -> Void) {
         guard result.itemProvider.canLoadObject(ofClass: UIImage.self) else { return }
         result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
-            MKPhotoPicker<Any>.logger.error("\(error)")
+            MKPhotoPickerLogger.logger.error("\(error)")
             guard let image = image as? UIImage else { return }
             completion(Image(uiImage: image))
         }
